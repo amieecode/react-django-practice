@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import CounterApp from './Components/CounterApp'
 
 function App() {
 
   return (
     <>
-      <h1>ME</h1>
+      <CounterApp />
     </>
   )
 }
