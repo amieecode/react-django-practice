@@ -1,1 +1,1 @@
-# Django_Basic_Blog_Project
+# Build a basic blog app (create, read posts)
