@@ -24,7 +24,7 @@ def register_user(request):
 
 @api_view(['POST'])
 def login_user(request):
-    username = request.data.get('username')
+    username = request.data.get('username', '').lower()
     password = request.data.get('password')
     user = authenticate(username=username, password=password)
     if user:
@@ -37,10 +37,10 @@ def login_user(request):
 @permission_classes([IsAuthenticated])
 def logout_user(request):
     """Logs out the user by deleting their authentication token"""
-    token = request.user.auth_token
-    if token:
-        token.delete()
-    return Response({"message": "User logged out"}, status=200)
+    if hasattr(request.user, 'auth_token'):
+        request.user.auth_token.delete()
+        return Response({"message": "User logged out"}, status=200)
+    return Response({"error": "User is already logged out"}, status=400)
 
 
 @api_view(['POST'])
