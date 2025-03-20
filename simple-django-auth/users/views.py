@@ -13,6 +13,7 @@ from .serializers import UserSerializer
 
 # Create your views here.
 @api_view(['POST'])
+@permission_classes([])
 def register_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
@@ -23,6 +24,7 @@ def register_user(request):
 
 
 @api_view(['POST'])
+@permission_classes([])
 def login_user(request):
     username = request.data.get('username', '').lower()
     password = request.data.get('password')
