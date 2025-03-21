@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, logout
@@ -9,16 +9,11 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
-from drf_spectacular.utils import extend_schema  # Import Spectacular Schema
 from .serializers import UserSerializer
 
-@extend_schema(
-    request=UserSerializer,
-    responses={200: UserSerializer},
-    description="Register a new user and return a token.",
-)
+# Create your views here.
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([])
 def register_user(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
@@ -27,13 +22,9 @@ def register_user(request):
         return Response({"token": token.key, "user": serializer.data})
     return Response(serializer.errors, status=400) 
 
-@extend_schema(
-    description="Log in a user and return an authentication token.",
-    request=None,
-    responses={200: {"token": "string"}},
-)
+
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([])
 def login_user(request):
     username = request.data.get('username', '').lower()
     password = request.data.get('password')
@@ -43,19 +34,20 @@ def login_user(request):
         return Response({"token": token.key})
     return Response({"error": "Invalid credentials"}, status=400)
 
-@extend_schema(description="Log out the user by deleting their token.")
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_user(request):
+    """Logs out the user by deleting their authentication token"""
     if hasattr(request.user, 'auth_token'):
         request.user.auth_token.delete()
         return Response({"message": "User logged out"}, status=200)
     return Response({"error": "User is already logged out"}, status=400)
 
-@extend_schema(description="Request a password reset link via email.")
+
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def password_reset_request(request):
+    """send Password reset email"""
     email = request.data.get('email')
     if not email:
         return Response({"error": 'Email is required'}, status=400)
@@ -63,8 +55,8 @@ def password_reset_request(request):
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        return Response({"error": "User does not exist"}, status=400)
-
+        return Response({"error": "User does not exit"}, status=400)
+    
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     reset_link = request.build_absolute_uri(reverse("password_reset_confirm", args=[uid, token]))
@@ -78,10 +70,10 @@ def password_reset_request(request):
     )
     return Response({"message": "Password reset email sent"}, status=200)
 
-@extend_schema(description="Confirm and reset the password using the provided token.")
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([])
 def password_reset_confirm(request, uidb64, token):
+    """Handle Password Reset Confirmation"""
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = User.objects.get(pk=uid)
@@ -100,10 +92,10 @@ def password_reset_confirm(request, uidb64, token):
 
     return Response({"message": "Password has been reset successfully"}, status=200)
 
-@extend_schema(description="Get the authenticated user's profile details.")
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
+    """Get logged in user's profile"""
     user = request.user
     data = {
         "id": user.id,
@@ -114,10 +106,11 @@ def get_user_profile(request):
     }
     return Response(data)
 
-@extend_schema(description="Update the authenticated user's profile.")
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_user_profile(request):
+    """"Update logged in user's profile"""
     user = request.user
     serializer = UserSerializer(user, data=request.data, partial=True)
 

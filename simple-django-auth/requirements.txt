@@ -2,7 +2,6 @@ asgiref==3.8.1
 attrs==25.3.0
 Django==4.2.20
 djangorestframework==3.14.0
-drf-spectacular==0.26.5
 inflection==0.5.1
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
